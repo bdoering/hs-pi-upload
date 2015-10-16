@@ -18,7 +18,13 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
 import Upload
+import qualified Config
+
+-- type CfgMonad = ReaderT L.ByteString (ServerPartT IO) 
+-- runCfgMonad :: CfgMonad a -> L.ByteString -> ServerPart a
+-- runCfgMonad k c = runReaderT k c
     
+
 myApp :: ServerPart Response
 myApp = msum
   [ dir "echo"    $ echo
@@ -62,7 +68,7 @@ echo =
 
 fileServing :: ServerPart Response
 fileServing =
-    serveDirectory EnableBrowsing [""] "/mnt/passport/src/hs-pi-upload/static"
+    serveDirectory EnableBrowsing [""] Config.staticDir 
             
 
 uploadTarget :: ServerPart Response
