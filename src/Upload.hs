@@ -1,48 +1,41 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Upload
-    ( uploadTargetGet
-    , uploadTargetPost
-    , extractParams
-    ) where
+       ( uploadTargetGet
+       , uploadTargetPost
+       , extractParams
+       ) where
 
-import Control.Applicative ((<$>), optional)
-import Control.Monad
-import Control.Monad.Trans (liftIO)
-import Data.Maybe (fromMaybe)
-import Data.List (sort, intercalate)
-import Data.List.Split (splitOn)
-import Data.Text (Text)
-import Data.Text.Lazy (unpack)
-import Happstack.Lite
-import Happstack.Server.Monads (askRq)
-import Happstack.Server.Types (unBody, takeRequestBody)
-import Text.Blaze.Html5 (Html, (!), a, form, input, p, toHtml, label)
-import Text.Blaze.Html5.Attributes (action, enctype, href, name, size, type_, value)
-import Text.RawString.QQ (r)
-import System.Directory
-import System.FilePath ((</>), takeExtension)
-import System.IO (withFile, IOMode(WriteMode))
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified System.FilePath.Glob as G
-    
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
+import           Control.Monad
+import           Control.Monad.Trans         (liftIO)
+import qualified Data.ByteString             as B
+import qualified Data.ByteString.Char8       as BS
+import qualified Data.ByteString.Lazy        as BL
+import           Data.List                   (intercalate, sort)
+import           Data.List.Split             (splitOn)
+import qualified Data.Text.Lazy              as TL
+import           Happstack.Lite
+import           Happstack.Server.Monads     (askRq)
+import           Happstack.Server.Types      (takeRequestBody, unBody)
+import           System.Directory
+import           System.FilePath             (takeExtension, (</>))
+import qualified System.FilePath.Glob        as G
+import           System.IO                   (IOMode (WriteMode), withFile)
+import           Text.Blaze.Html5            (Html, a, form, input, label, p,
+                                              toHtml, (!))
+import           Text.Blaze.Html5.Attributes (action, enctype, href, name, size,
+                                              type_, value)
 
-import Config
+import           Config
 
 data Chunk = Chunk { identifier :: String
-                   , number :: Int 
-                   , nChunks :: Int
-                   , filename :: String } 
+                   , number     :: Int
+                   , nChunks    :: Int
+                   , filename   :: String }
              deriving (Show)
 
 mkFilename :: Chunk -> FilePath
-mkFilename c = Config.uploadDir </> identifier c ++ ".part" ++ show (number c)
+mkFilename c = Config.tmpUploadDir </> identifier c ++ ".part" ++ show (number c)
 
 extractParams = do
   i <- lookText "resumableIdentifier"
@@ -64,7 +57,7 @@ uploadTargetGet = do
   fileExists <- liftIO $ doesFileExist fn
   if fileExists then setResponseCode 200 else setResponseCode 204
   return $ toResponse ()
-           
+
 uploadTargetPost :: ServerPart Response
 uploadTargetPost = do
   method POST
@@ -74,7 +67,7 @@ uploadTargetPost = do
   liftIO $ BL.writeFile fn fileData
   -- Check if all chunks have been loaded, possibly combine them to
   -- final file
-  chunkFilenames <- liftIO $ G.globDir1 (G.compile (identifier chunk ++ ".part*")) Config.uploadDir
+  chunkFilenames <- liftIO $ G.globDir1 (G.compile (identifier chunk ++ ".part*")) Config.tmpUploadDir
   when (length chunkFilenames == nChunks chunk) $ do
                      liftIO $ combineChunks chunk chunkFilenames
                      liftIO $ mapM_ removeFile chunkFilenames
@@ -82,24 +75,25 @@ uploadTargetPost = do
 
 getBody :: ServerPart BL.ByteString
 getBody = do
-    req  <- askRq 
-    body <- liftIO $ takeRequestBody req 
-    case body of 
-        Just rqbody -> return . unBody $ rqbody 
-        Nothing     -> return "" 
+    req  <- askRq
+    body <- liftIO $ takeRequestBody req
+    case body of
+        Just rqbody -> return . unBody $ rqbody
+        Nothing     -> return ""
 
 -- Remove '..', '/' and '\' from filenames, just to make sure...
 sanitizeFilename :: FilePath -> FilePath
 sanitizeFilename x = foldl clean x ["..", "/", "\\"]
-    where 
+    where
       clean :: String -> String -> String
       clean s c = intercalate "" . splitOn c $ s
-                                                     
+
 combineChunks :: Chunk -> [FilePath] -> IO ()
 combineChunks c xs = do
   -- Sort files by chunk number
   let sortedFiles = map snd . sort $ [((read . drop 5 . takeExtension $ fn) :: Int, fn) | fn <- xs]
-      outFn = (Config.uploadedDir </> (sanitizeFilename $ filename c))
-  withFile outFn WriteMode $ \h -> do
-    forM_ sortedFiles $ \f -> BL.readFile f >>= BL.hPut h 
-                       
+      outFn = Config.uploadedDir </> sanitizeFilename (filename c)
+  withFile outFn WriteMode $ \h ->
+    forM_ sortedFiles $ \f -> BL.readFile f >>= BL.hPut h
+
+

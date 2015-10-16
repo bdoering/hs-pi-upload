@@ -1,8 +1,8 @@
 module Main where
 
-import Happstack.Lite
+import           Happstack.Lite
 
-import Lib
+import           Lib
 
 main :: IO ()
 main = serve Nothing myApp

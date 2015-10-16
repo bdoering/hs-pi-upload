@@ -1,11 +1,11 @@
 module Config
-( uploadDir
-, uploadedDir
-, staticDir ) where
+    ( tmpUploadDir
+    , uploadedDir
+    , staticDir ) where
 
-import System.FilePath ((</>))
-    
-uploadDir, uploadedDir, staticDir :: FilePath
-uploadDir = "/tmp" </> "uploads"
-uploadedDir = "/tmp" </> "uploaded"
-staticDir = "/home/bd/src/hs-pi-upload/static"
+import           System.FilePath ((</>))
+
+tmpUploadDir, uploadedDir, staticDir :: FilePath
+tmpUploadDir = "/tmp" </> "tmp-uploads" -- Where chunks are stored
+uploadedDir = "/tmp" </> "uploaded"     -- Where final files are stored
+staticDir = "/home/bd/src/hs-pi-upload/static" -- Where static HTML resources are stored

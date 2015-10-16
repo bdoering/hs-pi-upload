@@ -23,7 +23,6 @@ library
                      , happstack-server
                      , text
                      , blaze-html
-                     , raw-strings-qq
                      , mtl
                      , Glob
                      , bytestring
