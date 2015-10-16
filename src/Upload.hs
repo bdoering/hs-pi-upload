@@ -22,6 +22,7 @@ import Text.Blaze.Html5.Attributes (action, enctype, href, name, size, type_, va
 import Text.RawString.QQ (r)
 import System.Directory
 import System.FilePath ((</>), takeExtension)
+import System.IO (withFile, IOMode(WriteMode))
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BL
@@ -98,25 +99,6 @@ getBody = do
         Just rqbody -> return . unBody $ rqbody 
         Nothing     -> return "" 
 
-
--- uploadTargetG :: ScottyM ()
--- uploadTargetG = get "/upload-target" $ do  -- text "GET some data"
-
--- uploadTargetP :: ScottyM ()
--- uploadTargetP = post "/upload-target" $ do
---                   -- Save chunk in body in new file
---                   chunk <- extractParams
---                   let fn = mkFilename chunk
---                   fileData <- body
---                   liftIO $ BL.writeFile fn fileData
-
---                   -- Check if all chunks have been downloaded and
---                   -- possibly combine chunks
---                   chunkFilenames <- liftIO $ G.globDir1 (G.compile (identifier chunk ++ ".part*")) uploadDir
---                   when (length chunkFilenames == nChunks chunk) $ do
---                                           liftIO $ combineChunks chunk chunkFilenames
---                                           liftIO $ mapM_ removeFile chunkFilenames
-                                                 
 -- Remove '..', '/' and '\' from filenames, just to make sure...
 sanitizeFilename :: FilePath -> FilePath
 sanitizeFilename x = foldl clean x ["..", "/", "\\"]
@@ -128,6 +110,11 @@ combineChunks :: Chunk -> [FilePath] -> IO ()
 combineChunks c xs = do
   -- Sort files by chunk number
   let sortedFiles = map snd . sort $ [((read . drop 5 . takeExtension $ fn) :: Int, fn) | fn <- xs]
-  fileContents <- mapM BL.readFile sortedFiles
-  BL.writeFile (Config.uploadedDir </> (sanitizeFilename $ filename c)) (BL.concat fileContents)
+      outFn = (Config.uploadedDir </> (sanitizeFilename $ filename c))
+  withFile outFn WriteMode $ \h -> do
+                       forM_ sortedFiles $ \f -> do
+                                     (BL.readFile f) >>= BL.hPut h 
+                       
+  -- fileContents <- mapM BL.readFile sortedFiles
+  -- BL.writeFile (Config.uploadedDir </> (sanitizeFilename $ filename c)) (BL.concat fileContents)
   
