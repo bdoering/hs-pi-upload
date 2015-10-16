@@ -41,7 +41,6 @@ data Chunk = Chunk { identifier :: String
                    , filename :: String } 
              deriving (Show)
 
-
 mkFilename :: Chunk -> FilePath
 mkFilename c = Config.uploadDir </> identifier c ++ ".part" ++ show (number c)
 
@@ -55,12 +54,6 @@ extractParams = do
              (read . TL.unpack $ n)
              (read . TL.unpack $ c)
              (TL.unpack f)
-                
-
--- Chunk <$> (fmap TL.unpack $ lookText "resumableIdentifier")
---                 <*> (read (lookText "resumableChunkNumber") :: Int)
---                 <*> (read T(lookText "resumableTotalChunks") :: Int)
---                 <*> (fmap TL.unpack $ lookText "resumableFilename")
 
 uploadTargetGet :: ServerPart Response
 uploadTargetGet = do
@@ -69,10 +62,8 @@ uploadTargetGet = do
   liftIO $ print chunk
   let fn = mkFilename chunk
   fileExists <- liftIO $ doesFileExist fn
-  if fileExists 
-  then setResponseCode 200
-  else setResponseCode 204
-  return $ toResponse ("Done"::String)
+  if fileExists then setResponseCode 200 else setResponseCode 204
+  return $ toResponse ()
            
 uploadTargetPost :: ServerPart Response
 uploadTargetPost = do
@@ -81,16 +72,14 @@ uploadTargetPost = do
   let fn = mkFilename chunk
   fileData <- getBody
   liftIO $ BL.writeFile fn fileData
-
+  -- Check if all chunks have been loaded, possibly combine them to
+  -- final file
   chunkFilenames <- liftIO $ G.globDir1 (G.compile (identifier chunk ++ ".part*")) Config.uploadDir
   when (length chunkFilenames == nChunks chunk) $ do
                      liftIO $ combineChunks chunk chunkFilenames
                      liftIO $ mapM_ removeFile chunkFilenames
-  -- setResponseCode 200
-  return $ toResponse ("Done"::String)
+  return $ toResponse ()
 
-         
--- put this function in a library somewhere
 getBody :: ServerPart BL.ByteString
 getBody = do
     req  <- askRq 
@@ -112,9 +101,5 @@ combineChunks c xs = do
   let sortedFiles = map snd . sort $ [((read . drop 5 . takeExtension $ fn) :: Int, fn) | fn <- xs]
       outFn = (Config.uploadedDir </> (sanitizeFilename $ filename c))
   withFile outFn WriteMode $ \h -> do
-                       forM_ sortedFiles $ \f -> do
-                                     (BL.readFile f) >>= BL.hPut h 
+    forM_ sortedFiles $ \f -> BL.readFile f >>= BL.hPut h 
                        
-  -- fileContents <- mapM BL.readFile sortedFiles
-  -- BL.writeFile (Config.uploadedDir </> (sanitizeFilename $ filename c)) (BL.concat fileContents)
-  
