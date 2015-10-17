@@ -1,11 +1,22 @@
 module Config
     ( tmpUploadDir
     , uploadedDir
-    , staticDir ) where
+    , staticDir
+    , botApiKey
+    , botChatId
+    ) where
 
 import           System.FilePath ((</>))
 
 tmpUploadDir, uploadedDir, staticDir :: FilePath
-tmpUploadDir = "/tmp" </> "tmp-uploads" -- Where chunks are stored
-uploadedDir = "/tmp" </> "uploaded"     -- Where final files are stored
-staticDir = "/home/bd/src/hs-pi-upload/static" -- Where static HTML resources are stored
+tmpUploadDir = "/tmp" </> "tmp-uploads"          -- Where chunks are stored
+uploadedDir = "/tmp" </> "uploaded"              -- Where final files are stored
+staticDir = "/home/USER/src/hs-pi-upload/static" -- Where static HTML resources are stored
+
+-- See https://www.domoticz.com/wiki/Telegram_Bot#Test_Your_New_Bot_and_Get_Your_chat_id
+-- about how to set up a bot and get the Api/Chat IDs
+botName = "DEMOBot"
+botApiKey = "123456789:KeyKeyKeyKeyKeyKeyKeyKeyKeyKeyKeyKe"
+botChatId = "82415746"
+
+
