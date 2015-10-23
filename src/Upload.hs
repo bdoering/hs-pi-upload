@@ -22,7 +22,7 @@ import           System.Directory
 import           System.FilePath             (takeExtension, (</>))
 import qualified System.FilePath.Glob        as G
 import           System.IO                   (IOMode (WriteMode), withFile)
-import           System.Process              (callCommand)
+import           System.Process              (system)
 import           Text.Blaze.Html5            (Html, a, form, input, label, p,
                                               toHtml, (!))
 import           Text.Blaze.Html5.Attributes (action, enctype, href, name, size,
@@ -73,10 +73,11 @@ uploadTargetPost = do
                      liftIO $ mapM_ removeFile chunkFilenames
                      -- Send a Telegram message to a group chat
                      let msg = "Received file: *" ++ filename chunk ++ "*"
-                     liftIO . callCommand $ "curl --data chat_id=" ++
+                     exitCode <- liftIO . system $ "curl --data chat_id=" ++
                        Config.botChatId ++ " --data-urlencode \"text=" ++
                        msg ++ "\" --data parse_mode=Markdown https://api.telegram.org/bot" ++
                        Config.botApiKey ++ "/sendMessage"
+                     liftIO. putStrLn $ "Telegram call exit code: " ++ (show exitCode)
 
   return $ toResponse ()
 
