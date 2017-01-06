@@ -11,7 +11,8 @@ import           System.FilePath ((</>))
 tmpUploadDir, uploadedDir, staticDir :: FilePath
 tmpUploadDir = "/mnt/passport/tmp/tmp-uploads"          -- Where chunks are stored
 uploadedDir = "/mnt/passport/hs-pi-upload_uploadedDir"  -- Where final files are stored
-staticDir = "/mnt/passport/src/hs-pi-upload/static/"    -- Where static HTML resources are stored
+-- staticDir = "/mnt/passport/src/hs-pi-upload/static/"    -- Where static HTML resources are stored
+staticDir = "/home/bd/develop/hs-pi-upload/static/"     -- Where static HTML resources are stored
 
 -- See https://www.domoticz.com/wiki/Telegram_Bot#Test_Your_New_Bot_and_Get_Your_chat_id
 -- about how to set up a bot and get the Api/Chat IDs
