@@ -3,7 +3,8 @@ module Config
     , uploadedDir
     , staticDir
     , botApiKey
-    , botChatId ) where
+    , botChatId
+    , port) where
 
 import           System.FilePath ((</>))
 
@@ -17,3 +18,7 @@ staticDir = "/mnt/passport/src/hs-pi-upload/static/"    -- Where static HTML res
 botName = "courbepiUploadBot"
 botApiKey = "133529879:AAHLLqk8tbI-h8a16I3qdZ5hJAN4-dNHC84"
 botChatId = "82415746"
+
+-- Server configuration
+port :: Int
+port = 8001
