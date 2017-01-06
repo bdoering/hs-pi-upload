@@ -1,23 +1,19 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Resumable.js - Multiple simultaneous, stable and resumable uploads via the HTML5 File API</title>
+    <title>Perrine and Björn's Upload Form</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" type="text/css" href="/static/css/upload.css" />
   </head>
   <body>
     <div id="frame">
 
-      <h1>Resumable.js</h1>
-      <p>It's a JavaScript library providing multiple simultaneous, stable and resumable uploads via the HTML5 File API.</p>
+      <h1>Perrine and Björn's Upload Form</h1>
+      <p>Want to send us some (big) files? Great! Just drag-and-drop files onto the gray area below. Please make sure that you use a unique (creative) filename because existing files are overwritten! Also, you may combine many files into a zip archive before uploading.</p>
 
-      <p>The library is designed to introduce fault-tolerance into the upload of large files through HTTP. This is done by splitting each files into small chunks; whenever the upload of a chunk fails, uploading is retried until the procedure completes. This allows uploads to automatically resume uploading after a network connection is lost either locally or to the server. Additionally, it allows for users to pause and resume uploads without loosing state.</p>
+      <p>We will get notified when the upload has finished, but maybe you want to tell us anyhow? Just to make sure...</p> 
 
-      <p>Resumable.js relies on the HTML5 File API and the ability to chunks files into smaller pieces. Currently, this means that support is limited to Firefox 4+ and Chrome 11+.</p>
-
-      <hr/>
-
-      <h3>Demo</h3>
+      
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
       <script src="/static/js/resumable.js"></script>
 
@@ -44,6 +40,13 @@
       
       <ul class="resumable-list"></ul>
 
+      <br />
+      <p>Technical note: This upload form is based on <a href="http://www.resumablejs.com/">Resumable.js</a>. It's a JavaScript library providing multiple simultaneous, stable and resumable uploads via the HTML5 File API.</p>
+
+      <p>The library is designed to introduce fault-tolerance into the upload of large files through HTTP. This is done by splitting each files into small chunks; whenever the upload of a chunk fails, uploading is retried until the procedure completes. This allows uploads to automatically resume uploading after a network connection is lost either locally or to the server. Additionally, it allows for users to pause and resume uploads without loosing state.</p>
+
+      <p>Resumable.js relies on the HTML5 File API and the ability to chunks files into smaller pieces. Currently, this means that support is limited to Firefox 4+ and Chrome 11+.</p>
+      
       <script>
         var r = new Resumable({
             target:'/upload-target',

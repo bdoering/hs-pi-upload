@@ -6,6 +6,7 @@ module Upload
        , extractParams
        ) where
 
+import           Config
 import           Control.Monad
 import           Control.Monad.Trans         (liftIO)
 import qualified Data.ByteString             as B
@@ -21,12 +22,11 @@ import           System.Directory
 import           System.FilePath             (takeExtension, (</>))
 import qualified System.FilePath.Glob        as G
 import           System.IO                   (IOMode (WriteMode), withFile)
+import           System.Process              (system)
 import           Text.Blaze.Html5            (Html, a, form, input, label, p,
                                               toHtml, (!))
 import           Text.Blaze.Html5.Attributes (action, enctype, href, name, size,
                                               type_, value)
-
-import           Config
 
 data Chunk = Chunk { identifier :: String
                    , number     :: Int
@@ -71,6 +71,14 @@ uploadTargetPost = do
   when (length chunkFilenames == nChunks chunk) $ do
                      liftIO $ combineChunks chunk chunkFilenames
                      liftIO $ mapM_ removeFile chunkFilenames
+                     -- Send a Telegram message to a group chat
+                     let msg = "Received file: *" ++ filename chunk ++ "*"
+                     exitCode <- liftIO . system $ "curl --data chat_id=" ++
+                       Config.botChatId ++ " --data-urlencode \"text=" ++
+                       msg ++ "\" --data parse_mode=Markdown https://api.telegram.org/bot" ++
+                       Config.botApiKey ++ "/sendMessage"
+                     liftIO. putStrLn $ "Telegram call exit code: " ++ (show exitCode)
+
   return $ toResponse ()
 
 getBody :: ServerPart BL.ByteString
